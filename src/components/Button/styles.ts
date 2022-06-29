@@ -10,7 +10,6 @@ export const styles = StyleSheet.create({
     opacity: 0.7,
   },
   label: {
-    fontSize: 14,
     textAlign: 'center',
     color: 'white',
   },

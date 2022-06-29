@@ -5,16 +5,16 @@ import {
   Platform,
   SafeAreaView,
   ScrollView,
-  Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import uuid from 'react-native-uuid';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {AppRoutes} from '../../routes';
 import Button from '../../components/Button';
-import Task from '../../components/Task';
-import TextInput from '../../components/TextInput';
+import TaskItem from '../../components/TaskItem';
 import {styles} from './styles';
+
+type HomeProps = NativeStackScreenProps<AppRoutes>;
 
 type TaskProps = {
   id: string;
@@ -22,9 +22,8 @@ type TaskProps = {
   isDone: boolean;
 };
 
-const Home: React.FC = () => {
+const Home: React.FC<HomeProps> = ({navigation}) => {
   const [taskList, setTaskList] = useState<TaskProps[]>();
-  const [newTask, setNewTask] = useState('');
 
   useEffect(() => {
     const getData = async () => {
@@ -37,22 +36,12 @@ const Home: React.FC = () => {
         Alert.alert(error as string);
       }
     };
-    getData();
-  }, []);
-
-  const handleSaveTask = async () => {
-    try {
-      const newTaskList = [
-        ...(taskList || []),
-        {id: uuid.v4() as string, title: newTask, isDone: false},
-      ];
-      setTaskList(newTaskList);
-      setNewTask('');
-      await AsyncStorage.setItem('taskList', JSON.stringify(newTaskList));
-    } catch (error) {
-      Alert.alert(error as string);
-    }
-  };
+    const unsubscribe = navigation.addListener('focus', () => {
+      getData();
+      // do something
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const changeDoneStatus = async (taskId: string, isDone: boolean) => {
     try {
@@ -85,13 +74,8 @@ const Home: React.FC = () => {
     Alert.alert(currentTask.title, undefined, buttons);
   };
 
-  const handleClearTaskList = async () => {
-    try {
-      setTaskList(undefined);
-      await AsyncStorage.clear();
-    } catch (error) {
-      Alert.alert(error as string);
-    }
+  const handleNavigateToCreateNewTask = () => {
+    navigation.navigate('Task');
   };
 
   return (
@@ -101,15 +85,18 @@ const Home: React.FC = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleClearTaskList}>
-              <Text style={styles.trash}>🗑</Text>
-            </TouchableOpacity>
+            <Button
+              label="+"
+              onPress={handleNavigateToCreateNewTask}
+              fontWeight="bold"
+              fontSize={16}
+            />
           </View>
           <ScrollView>
             {taskList?.map(taskItem => {
               const {id, title, isDone} = taskItem;
               return (
-                <Task
+                <TaskItem
                   key={id}
                   label={title}
                   isDone={isDone}
@@ -118,14 +105,6 @@ const Home: React.FC = () => {
               );
             })}
           </ScrollView>
-          <View style={styles.wrapper}>
-            <TextInput value={newTask} onChangeText={setNewTask} width={260} />
-            <Button
-              label="Salvar"
-              onPress={handleSaveTask}
-              disabled={!newTask}
-            />
-          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -133,3 +112,17 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+
+// AXIOS client HTTP
+
+// POST DELETE PUT GET PATCH
+
+// Context API
+
+// CSS in JS Styled Components
+
+// React Native Navigation
+
+// Formik e YUP
+
+// Criação de HOOKS personalizados
